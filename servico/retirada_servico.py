@@ -1,5 +1,3 @@
-
-import mysql.connector
 from servico.database import get_connection
 from models.retirada import Retirada
 from servico.alimentos_servicos import buscar_alimento_por_id
@@ -30,17 +28,15 @@ def listar_retiradas_do_usuario(usuario_logado):
 
     retiradas = []
     for r in retiradas_db:
-        alimento = buscar_alimento_por_id(r[2])  # r[2] é o alimento_id
+        alimento = buscar_alimento_por_id(r['alimento_id'])  # usando chave do dict
 
-        # Passando o objeto Alimento completo para a instância de Retirada
         retirada = Retirada(
-            id_=r[0],           # id da retirada
-            usuario_id=r[1],    # id do usuário
-            alimento=alimento,  # Passamos o objeto Alimento completo
-            data=r[3],          # data da retirada
-            local=r[4]          # local da retirada
+            id_=r['id'],             # id da retirada
+            usuario_id=r['usuario_id'],
+            alimento=alimento,       # objeto Alimento completo
+            data=r['data'],
+            local=r['local']
         )
-
         retiradas.append(retirada)
 
     cursor.close()

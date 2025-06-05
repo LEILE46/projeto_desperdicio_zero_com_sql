@@ -1,21 +1,14 @@
 from tkinter import *
 from tkinter import messagebox
-from servico.usuario_servico import cadastrar_usuario, buscar_usuario_por_email, verificar_bloqueio
+from servico.usuario_servico import cadastrar_usuario, buscar_usuario_por_email
 from servico.alimentos_servicos import cadastrar_alimento, listar_alimentos_disponiveis
 from servico.retirada_servico import marcar_retirada, listar_retiradas_do_usuario
 from servico.avaliacao_servico import avaliar_usuario
 
 usuario_logado = None
-
-def iniciar_interface():
-    janela = Tk()
-    janela.title("Doação e Resgate de Alimentos - Não Desperdice!")
-    janela.geometry("460x480")
-    janela.configure(bg="#e6f2ff")
-
-    Label(janela, text="Bem-vindo ao app desperdício zero com doações inclusas", font=("Helvetica", 16, "bold"),
-          bg="#e6f2ff", fg="#004080").pack(pady=20)
-
+menu_global = None
+def criar_campos_login(janela):
+    """Criação dos campos para login/cadastro"""
     Label(janela, text="Nome:", bg="#e6f2ff", fg="#003366", font=("Arial", 12)).pack(anchor="w", padx=40)
     nome_entry = Entry(janela, font=("Arial", 12))
     nome_entry.pack(padx=40, pady=5)
@@ -32,7 +25,29 @@ def iniciar_interface():
     tipo_entry = Entry(janela, font=("Arial", 12))
     tipo_entry.pack(padx=40, pady=5)
 
-    def fazer_cadastro():
+    return nome_entry, email_entry, local_entry, tipo_entry
+def iniciar_interface():
+    janela = Tk()
+    janela.title("Doação e Resgate de Alimentos - Não Desperdice!")
+    janela.geometry("460x480")
+    janela.configure(bg="#e6f2ff")
+
+    Label(janela, text="Bem-vindo ao app desperdício zero com doações inclusas", font=("Helvetica", 16, "bold"),
+          bg="#e6f2ff", fg="#004080").pack(pady=20)
+
+    # Campos de login/cadastro
+    nome_entry, email_entry, local_entry, tipo_entry = criar_campos_login(janela)
+
+    # Botões de ação
+    Button(janela, text="Cadastrar", bg="#007acc", fg="white", font=("Arial", 13, "bold"),
+           command=lambda: fazer_cadastro(nome_entry, email_entry, tipo_entry, local_entry)).pack(pady=10, ipadx=20, ipady=5)
+    Button(janela, text="Login", bg="#005c99", fg="white", font=("Arial", 13, "bold"),
+           command=lambda: fazer_login(email_entry, janela)).pack(pady=10, ipadx=20, ipady=5)
+
+    janela.mainloop()
+
+    def fazer_cadastro(nome_entry, email_entry, tipo_entry, local_entry):
+        """Função de cadastro de usuário"""
         nome = nome_entry.get().strip()
         email = email_entry.get().strip()
         tipo = tipo_entry.get().strip().lower()
@@ -44,40 +59,45 @@ def iniciar_interface():
         if tipo not in ("pessoa", "ong"):
             messagebox.showwarning("Tipo inválido", "Digite 'pessoa' ou 'ong' para o tipo de perfil.")
             return
+        if buscar_usuario_por_email(email):
+            messagebox.showwarning("Email já cadastrado", "Este email já foi registrado. Faça login.")
+            return
 
+    
         cadastrar_usuario(nome, email, tipo, local)
         messagebox.showinfo("Cadastro realizado", f"Olá {nome}! Cadastro efetuado com sucesso.")
 
-    def fazer_login():
+    def fazer_login(email_entry, janela):
+        """Função de login de usuário"""
         email = email_entry.get().strip()
         usuario = buscar_usuario_por_email(email)
         if usuario:
-            if verificar_bloqueio(usuario):
-                messagebox.showerror("Acesso bloqueado", "Usuário bloqueado devido a avaliações negativas.")
-                return
             global usuario_logado
             usuario_logado = usuario
-            messagebox.showinfo("Login feito", f"Bem-vindo, {usuario.nome} ({usuario.tipo_perfil.upper()})!")
-            janela.destroy()
-            abrir_menu_principal()
+            print(f"Login bem-sucedido: {usuario_logado.nome}, {usuario_logado.tipo_perfil}")
+            janela.destroy()  # Fechar a tela de login
+            abrir_menu_principal()  # Abrir o menu principal
         else:
             messagebox.showerror("Usuário não encontrado", "Email não cadastrado. Faça o cadastro primeiro.")
 
-    Button(janela, text="Cadastrar", bg="#007acc", fg="white", font=("Arial", 13, "bold"),
-           command=fazer_cadastro).pack(pady=10, ipadx=20, ipady=5)
-    Button(janela, text="Login", bg="#005c99", fg="white", font=("Arial", 13, "bold"),
-           command=fazer_login).pack(pady=10, ipadx=20, ipady=5)
+    def abrir_menu_principal():
+        """Função que abre o menu principal após o login"""
+        global menu_global
+        menu = Tk()
+        menu_global = menu  # Variável global para menu
+        menu.title("Menu Principal - Doação de Alimentos")
+        menu.geometry("920x520")
+        menu.configure(bg="#f0f8ff")  # alice blue
 
-    janela.mainloop()
+        Label(menu, text=f"Olá, {usuario_logado.nome} ({usuario_logado.tipo_perfil.upper()})",
+            font=("Helvetica", 16, "bold"), bg="#f0f8ff", fg="#004080").pack(pady=15)
+        print("Usuário logado:", usuario_logado.nome, usuario_logado.tipo_perfil)
 
-def abrir_menu_principal():
-    menu = Tk()
-    menu.title("Menu Principal - Doação de Alimentos")
-    menu.geometry("920x520")
-    menu.configure(bg="#f0f8ff")  # alice blue
+        # Botões do menu principal
+        criar_botao_menu(menu)
+        menu.mainloop()
 
-    Label(menu, text=f"Olá, {usuario_logado.nome} ({usuario_logado.tipo_perfil.upper()})",
-          font=("Helvetica", 16, "bold"), bg="#f0f8ff", fg="#004080").pack(pady=15)
+
 
     def tela_cadastro_alimento():
         top = Toplevel()
@@ -121,7 +141,6 @@ def abrir_menu_principal():
                 messagebox.showerror("Erro", "Validade inválida ou alimento vencido. Não podemos aceitar alimentos vencidos.")
 
         Button(top, text="Salvar", bg="#28a745", fg="white", font=("Arial", 12, "bold"), command=salvar).pack(pady=20, ipadx=30, ipady=8)
-
     def tela_buscar_alimentos():
         top = Toplevel()
         top.title("Alimentos Disponíveis para Retirada")
@@ -238,13 +257,18 @@ def abrir_menu_principal():
             top.destroy()
 
         Button(top, text="Enviar Avaliação", bg="#9c27b0", fg="white", font=("Arial", 13, "bold"), command=avaliar).pack(pady=20, ipadx=20, ipady=7)
+    def criar_botao_menu(menu):
+        criar_botao_menu(menu)
+        menu.mainloop()
 
-    Button(menu, text="Cadastrar Alimento", bg="#28a745", fg="white", font=("Arial", 13, "bold"), command=tela_cadastro_alimento).pack(pady=8, ipadx=25, ipady=7)
-    Button(menu, text="Ver Alimentos Disponíveis", bg="#007bff", fg="white", font=("Arial", 13, "bold"), command=tela_buscar_alimentos).pack(pady=8, ipadx=25, ipady=7)
-    Button(menu, text="Agendar Retirada", bg="#ff9800", fg="white", font=("Arial", 13, "bold"), command=tela_marcar_retirada).pack(pady=8, ipadx=25, ipady=7)
-    Button(menu, text="Consultar Histórico", bg="#6c757d", fg="white", font=("Arial", 13, "bold"), command=tela_historico).pack(pady=8, ipadx=25, ipady=7)
-    Button(menu, text="Avaliar Usuário", bg="#9c27b0", fg="white", font=("Arial", 13, "bold"), command=tela_avaliar).pack(pady=8, ipadx=25, ipady=7)
-    Button(menu, text="Sair", bg="#dc3545", fg="white", font=("Arial", 13, "bold"), command=menu.destroy).pack(pady=15, ipadx=40, ipady=7)
+        """Criação dos botões do menu principal"""
+        Button(menu, text="Cadastrar Alimento", bg="#28a745", fg="white", font=("Arial", 13, "bold"), command=tela_cadastro_alimento).pack(pady=8, ipadx=25, ipady=7)
+        Button(menu, text="Ver Alimentos Disponíveis", bg="#007bff", fg="white", font=("Arial", 13, "bold"), command=tela_buscar_alimentos).pack(pady=8, ipadx=25, ipady=7)
+        Button(menu, text="Agendar Retirada", bg="#ff9800", fg="white", font=("Arial", 13, "bold"), command=tela_marcar_retirada).pack(pady=8, ipadx=25, ipady=7)
+        Button(menu, text="Consultar Histórico", bg="#6c757d", fg="white", font=("Arial", 13, "bold"), command=tela_historico).pack(pady=8, ipadx=25, ipady=7)
+        Button(menu, text="Avaliar Usuário", bg="#9c27b0", fg="white", font=("Arial", 13, "bold"), command=tela_avaliar).pack(pady=8, ipadx=25, ipady=7)
+        Button(menu, text="Sair", bg="#dc3545", fg="white", font=("Arial", 13, "bold"), command=menu_global.destroy).pack(pady=15, ipadx=40, ipady=7)
+
 
 
 if __name__ == "__main__":

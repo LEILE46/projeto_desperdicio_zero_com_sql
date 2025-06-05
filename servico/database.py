@@ -1,9 +1,11 @@
-import mysql.connector 
- 
+import pymysql
+from pymysql.cursors import DictCursor  
+
 def get_connection():
-    return mysql.connector.connect(
+    return pymysql.connect(
         host="localhost",
         user="root",
         password="",
-        database="doacao_alimentos"
+        database="doacao_alimentos",
+        cursorclass=DictCursor 
     )

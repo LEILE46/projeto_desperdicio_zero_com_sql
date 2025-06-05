@@ -8,13 +8,19 @@ def avaliar_usuario(usuario, nota, comentario):
     conn.commit()
     cursor.close()
     conn.close()
-
 def listar_avaliacoes():
     conn = get_connection()
-    cursor = conn.cursor()
+    cursor = conn.cursor()  # agora já retorna dicionários
     cursor.execute("SELECT id, usuario_id, nota, comentario FROM avaliacoes ORDER BY id DESC")
     rows = cursor.fetchall()
     cursor.close()
     conn.close()
-    avaliacoes = [Avaliacao(*row) for row in rows]
+
+    avaliacoes = [Avaliacao(
+        id_=row['id'],
+        usuario_id=row['usuario_id'],
+        nota=row['nota'],
+        comentario=row['comentario']
+    ) for row in rows]
+
     return avaliacoes

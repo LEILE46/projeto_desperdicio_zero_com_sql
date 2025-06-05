@@ -1,7 +1,7 @@
 from servico.database import get_connection
 from models.alimento import Alimento
 from datetime import datetime
-
+from pymysql.cursors import DictCursor
 def cadastrar_alimento(nome, validade, quantidade, usuario):
     try:
         validade_date = datetime.strptime(validade, "%Y-%m-%d").date()
@@ -23,14 +23,15 @@ def cadastrar_alimento(nome, validade, quantidade, usuario):
 
 def listar_alimentos_disponiveis():
     conn = get_connection()
-    cursor = conn.cursor(dictionary=True)  # Garantir que o cursor retorne dicionários
+    cursor = conn.cursor(DictCursor)  # <-- usar DictCursor aqui
+
     cursor.execute("SELECT id, nome, validade, quantidade, doador_id FROM alimentos WHERE validade >= CURDATE()")
     rows = cursor.fetchall()
+
+    alimentos = [Alimento(row['id'], row['nome'], row['validade'], row['quantidade'], row['doador_id']) for row in rows]
+
     cursor.close()
     conn.close()
-
- 
-    alimentos = [Alimento(row['id'], row['nome'], row['validade'], row['quantidade'], row['doador_id']) for row in rows]
     return alimentos
 def buscar_alimento_por_id(alimento_id):
     conn = get_connection()
