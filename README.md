@@ -25,9 +25,13 @@ Este projeto é uma aplicação desktop feita em Python com interface gráfica (
   pip install -r requirements.txt
 
 # Cadastro / Login
-![alt text](f4758f87-4725-4fbf-838f-6f593fe98b72.png)
+![Captura de tela 2025-06-05 152705](https://github.com/user-attachments/assets/a7684176-4e1f-490d-9c89-0b01c444f978)
+
+
 # Menu
-![alt text](e45efbcb-6d49-47b3-b3e8-2875faa74bee.png) 
+![Captura de tela 2025-06-05 152728](https://github.com/user-attachments/assets/1670040c-9195-4467-9786-df16af983294)
 # Cadastro Alimento
 
-![alt text](719913f0-5aeb-44a8-86e9-34e85354c7a1.png)
+![Captura de tela 2025-06-05 152843](https://github.com/user-attachments/assets/c4bb9c77-7208-4679-806c-20400b9c9aee)
+
+
